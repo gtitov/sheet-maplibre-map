@@ -23,7 +23,7 @@ const makeMap = (csvData) => {
       delimiter: ",",
     },
     function (error, data) {
-      console.log(data)
+      console.log(data);
       data.features.map((f) => {
         document.getElementById(
           "list-all"
@@ -69,11 +69,9 @@ const makeMap = (csvData) => {
           const pointCount = features[0].properties.point_count;
           const clusterSource = map.getSource("vacancies");
 
-          clusterSource.getClusterLeaves(
-            clusterId,
-            pointCount,
-            0,
-            (error, clusterFeatures) => {
+          clusterSource
+            .getClusterLeaves(clusterId, pointCount, 0)
+            .then((clusterFeatures) => {
               document.getElementById("list-selected").innerHTML =
                 "<h2>Выбранные вакансии</h2>";
               clusterFeatures.map((feature) => {
@@ -81,8 +79,7 @@ const makeMap = (csvData) => {
                   "list-selected"
                 ).innerHTML += `<h4>${feature.properties["Вакансия"]}</h4><a target="blank_" href='${feature.properties["Ссылка на сайте Картетики"]}'>Подробнее</a><hr>`;
               });
-            }
-          );
+            });
         } else {
           const unclusteredFeature = features[0];
           document.getElementById(
