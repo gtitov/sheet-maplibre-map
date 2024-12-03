@@ -6,8 +6,8 @@ h2 {
     position: absolute;
     top: 0;
     bottom: 0;
-    right: 300px; /* must be set */
-    left: 300px; /* must be set */
+    right: 300px;
+    left: 300px;
 }
 
 #list-selected {

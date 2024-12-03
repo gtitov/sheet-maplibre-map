@@ -8,23 +8,37 @@ const map = new maplibregl.Map({
 
 map.on("load", function () {
   fetch(
-    "https://docs.google.com/spreadsheets/d/1f0waZduz5CXdNig_WWcJDWWntF-p5gN2-P-CNTLxEa0/gviz/tq?tqx=out:csv&sheet=Sheet1"
+    "https://docs.google.com/spreadsheets/d/1f0waZduz5CXdNig_WWcJDWWntF-p5gN2-P-CNTLxEa0/export?format=csv"
   )
     .then((response) => response.text())
-    .then((text) => makeMap(text));
-});
+    .then((csv) => {
+      const csvRows = csv.split("\r\n");
+      const colnames = csvRows[0].split(",")
+      const rows = csvRows.slice(1);
+      const geojsonFeatures = rows.map((row) => {
+        const rowValues = row.split(",");
 
-const makeMap = (csvData) => {
-  csv2geojson.csv2geojson(
-    csvData,
-    {
-      latfield: "lat",
-      lonfield: "lon",
-      delimiter: ",",
-    },
-    function (error, data) {
-      console.log(data);
-      data.features.map((f) => {
+        const properties = {}
+        rowValues.map((propertyValue, i) => {
+          properties[colnames[i]] = propertyValue
+        })
+        const geometry = {
+          type: "Point",
+          coordinates: [properties.lon, properties.lat],
+        }
+
+        return {
+          type: "Feature",
+          properties: properties,
+          geometry: geometry
+        }
+      })
+      const geojson = {
+        type: "FeatureCollection",
+        features: geojsonFeatures
+      }
+
+      geojson.features.map((f) => {
         document.getElementById(
           "list-all"
         ).innerHTML += `<h4>${f.properties["Вакансия"]}</h4><a href='#' onclick="map.flyTo({center: [${f.geometry.coordinates}], zoom: 10})">Найти на карте</a><hr>`;
@@ -32,7 +46,7 @@ const makeMap = (csvData) => {
 
       map.addSource("vacancies", {
         type: "geojson",
-        data: data,
+        data: geojson,
         cluster: true,
         clusterRadius: 20,
       });
@@ -98,5 +112,5 @@ const makeMap = (csvData) => {
         map.getCanvas().style.cursor = "";
       });
     }
-  );
-};
+    );
+});
