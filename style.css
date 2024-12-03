@@ -27,3 +27,7 @@ h2 {
     width: 300px;
     overflow-y: auto;
 }
+
+.list-item {
+    padding: 10px;
+}
