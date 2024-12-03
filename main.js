@@ -108,6 +108,10 @@ map.on("load", function () {
       })
     })
 
+  map.on("click", "clusters", function (e) {
+    map.flyTo({ center: e.lngLat, zoom: 8 });
+  })
+
   map.on("mouseenter", "clusters", function () {
     map.getCanvas().style.cursor = "pointer";
   });
