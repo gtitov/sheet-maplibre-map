@@ -6,46 +6,26 @@ const map = new maplibregl.Map({
   zoom: 1, // starting zoom
 });
 
-map.on("load", function () {
-  fetch(
-    "https://docs.google.com/spreadsheets/d/1f0waZduz5CXdNig_WWcJDWWntF-p5gN2-P-CNTLxEa0/export?format=csv"
-  )
+map.on("load", () => {
+  fetch("https://docs.google.com/spreadsheets/d/1f0waZduz5CXdNig_WWcJDWWntF-p5gN2-P-CNTLxEa0/export?format=csv")
     .then((response) => response.text())
     .then((csv) => {
-      const csvRows = csv.split("\r\n");
-      const colnames = csvRows[0].split(",")
-      const rows = csvRows.slice(1);
-      const geojsonFeatures = rows.map((row) => {
-        const rowValues = row.split(",");
-
-        const properties = {}
-        rowValues.map((propertyValue, i) => {
-          properties[colnames[i]] = propertyValue
-        })
-        const geometry = {
-          type: "Point",
-          coordinates: [properties.lon, properties.lat],
-        }
-
+      const rows = Papa.parse(csv, { header: true })
+      // console.log(rows)
+      const geojsonFeatures = rows.data.map((row) => {
         return {
           type: "Feature",
-          properties: properties,
-          geometry: geometry
+          properties: row,
+          geometry: {
+            type: "Point",
+            coordinates: [row.lon, row.lat],
+          }
         }
       })
       const geojson = {
         type: "FeatureCollection",
         features: geojsonFeatures
       }
-
-      geojson.features.map((f) => {
-        document.getElementById(
-          "list-all"
-        ).innerHTML += `<div class="list-item">
-        <h4>${f.properties["Вакансия"]}</h4>
-        <a href='#' onclick="map.flyTo({center: [${f.geometry.coordinates}], zoom: 10})">Найти на карте</a>
-        </div><hr>`;
-      });
 
       map.addSource("vacancies", {
         type: "geojson",
@@ -62,7 +42,14 @@ map.on("load", function () {
           "circle-color": "#7EC8E3",
           "circle-stroke-width": 1,
           "circle-stroke-color": "#FFFFFF",
-          "circle-radius": ["step", ["get", "point_count"], 12, 3, 20, 6, 30],
+          "circle-radius": [
+            "step", ["get", "point_count"],
+            12,
+            3,
+            20,
+            6,
+            30
+          ],
         },
       });
 
@@ -71,10 +58,18 @@ map.on("load", function () {
         type: "symbol",
         source: "vacancies",
         layout: {
-          "text-field": "{point_count}",
-          "text-font": ["Noto Sans Regular"],
+          "text-field": ["get", "point_count"],
           "text-size": 10,
         },
+      });
+
+      geojson.features.map((f) => {
+        document.getElementById(
+          "list-all"
+        ).innerHTML += `<div class="list-item">
+        <h4>${f.properties["Вакансия"]}</h4>
+        <a href='#' onclick="map.flyTo({center: [${f.geometry.coordinates}], zoom: 10})">Найти на карте</a>
+        </div><hr>`;
       });
 
       map.on('moveend', () => {
