@@ -1,3 +1,5 @@
+import * as maplibregl from 'https://unpkg.com/maplibre-gl@^6/dist/maplibre-gl.mjs';
+
 const map = new maplibregl.Map({
   container: 'map',
   style: "https://raw.githubusercontent.com/gtitov/basemaps/refs/heads/master/positron-nolabels.json",
@@ -66,11 +68,31 @@ map.on("load", () => {
       })
 
       geojson.features.map((f) => {
-        document.getElementById("list-all").innerHTML += `<div class="list-item">
-                <h4>${f.properties["Вакансия"]}</h4>
-                <a href="#" onclick="map.flyTo({ center: [${f.geometry.coordinates}], zoom: 10})">Найти на карте</a>
-                </div><hr>`
-      })
+        const itemContainer = document.createElement("div");
+        itemContainer.className = "list-item";
+
+        const title = document.createElement("h4");
+        title.textContent = f.properties["Вакансия"];
+
+        const link = document.createElement("a");
+        link.href = "#";
+        link.textContent = "Найти на карте";
+
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          map.flyTo({
+            center: f.geometry.coordinates,
+            zoom: 10
+          });
+        });
+
+        itemContainer.appendChild(title);
+        itemContainer.appendChild(link);
+
+        const listAll = document.getElementById("list-all");
+        listAll.appendChild(itemContainer);
+        listAll.appendChild(document.createElement("hr"));
+      });
 
       map.on("moveend", () => {
         const features = map.queryRenderedFeatures({ layers: ["clusters"] })
