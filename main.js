@@ -101,17 +101,16 @@ map.on("load", () => {
         features.map(f => {
           if (f.properties.cluster) {
             map.getSource("vacancies").getClusterLeaves(
-              clusterId = f.properties.cluster_id,
-              limit = f.properties.point_count,
-              offset = 0
-            )
-              .then((clusterFeatures) => {
-                clusterFeatures.map((feature) => document.getElementById("list-selected")
-                  .innerHTML += `<div class="list-item">
+              f.properties.cluster_id, // clusterId
+              f.properties.point_count, // limit
+              0 // offset
+            ).then((clusterFeatures) => {
+              clusterFeatures.map((feature) => document.getElementById("list-selected")
+                .innerHTML += `<div class="list-item">
                                 <h4>${feature.properties["Вакансия"]}</h4>
                                 <a target="blank_" href='${feature.properties["Ссылка на сайте Картетики"]}'>Подробнее</a>
                                 </div><hr>`)
-              })
+            })
           } else {
             document.getElementById("list-selected")
               .innerHTML += `<div class="list-item">
